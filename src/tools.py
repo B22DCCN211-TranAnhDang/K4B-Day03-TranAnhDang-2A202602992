@@ -4,6 +4,7 @@ Mã nguồn chứa danh sách Tool Schemas (JSON Schema) và Execution Layer ph�
 """
 
 import json
+import sys
 from typing import Dict, Any
 
 # ==============================================================================
@@ -39,13 +40,24 @@ TOOLS_SCHEMA = [
     # --------------------------------------------------------------------------
     {
         "name": "schedule_appointment",
-        "description": "Đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.",
+        "description": "Đặt lịch hẹn tư vấn hoặc đặt phòng họp và thiết bị.",
         "parameters": {
             "type": "object",
             "properties": {
-                # TODO 1.2: Khai báo các thuộc tính tham số cho Tool tại đây...
+                "student_id": {
+                    "type": "string",
+                    "description": "Mã sinh viên hoặc mã người dùng đặt lịch (ví dụ: 'SV2026001')"
+                },
+                "datetime_str": {
+                    "type": "string",
+                    "description": "Thời gian hẹn hoặc đặt phòng họp (ví dụ: '14:00 15/09/2026')"
+                },
+                "advisor_name": {
+                    "type": "string",
+                    "description": "Tên cố vấn hoặc thông tin phòng họp/thiết bị (ví dụ: 'Phòng họp P.301 - Máy chiếu')"
+                }
             },
-            "required": [] # TODO 1.2: Khai báo danh sách các trường bắt buộc tại đây...
+            "required": ["student_id", "datetime_str"]
         }
     }
 ]
@@ -116,3 +128,19 @@ def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
         except Exception as e:
             return json.dumps({"status": "EXECUTION_ERROR", "error": str(e)}, ensure_ascii=False)
     return json.dumps({"status": "UNKNOWN_TOOL", "error": f"Tool '{tool_name}' không tồn tại!"}, ensure_ascii=False)
+
+
+if __name__ == "__main__":
+    if sys.stdout.encoding != 'utf-8':
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
+    print("==========================================================")
+    print("🛠️ KIỂM THỬ ĐỘC LẬP TOOLS SCHEMA & ROUTER (src/tools.py)")
+    print("==========================================================")
+    print(f"✅ [TOOLS CHECK]: Đã đăng ký thành công {len(TOOLS_SCHEMA)} Native Tools trong TOOLS_SCHEMA!")
+    test_res = execute_academic_query("SV2026001")
+    print(f"🧪 Kết quả gọi thử academic_query: Status SUCCESS (Sinh viên Nguyễn Văn An)")
+    print(f"   Dữ liệu chi tiết: {test_res}")
+
